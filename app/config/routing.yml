@@ -1,0 +1,5 @@
+sport_lobster:
+    resource: "@SportLobsterBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
