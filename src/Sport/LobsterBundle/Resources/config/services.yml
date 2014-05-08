@@ -1,1 +1,4 @@
 services:
+    lobster.sky.scraper:
+        class: Sport\LobsterBundle\Service\Feed\Scraper
+        arguments: [ 'file:///var/www/sites/sportlobster.dev/feed.xml', 'xml' ]
