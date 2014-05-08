@@ -18,18 +18,17 @@ use Sport\LobsterBundle\Service\Feed\Scraper;
  */
 class ScraperTest extends \PHPUnit_Framework_TestCase
 {
-    private $testClass;
-
-    public function setUp()
-    {
-        $this->testClass = new Scraper('xml', 'file:///var/www/sites/sportlobster.dev/feed.xml');
-    }
-
     /**
      * @expectedException \RuntimeException
      */
     public function testInstantiationFailsIfUrlDoesNotExist()
     {
-        $badUrlClass = new Scraper('xml', 'file:///this/does/not/exist.made_up');
+        $test = new Scraper('xml', 'file:///this/does/not/exist.made_up');
+    }
+
+    public function testEmptyChannelReturnsEmptyList()
+    {
+        $path = realpath(dirname(__FILE__) . '/emptyChannel.xml');
+        $test = new Scraper('xml', $path);
     }
 }
