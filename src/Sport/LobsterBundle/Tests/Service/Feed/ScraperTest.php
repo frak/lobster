@@ -137,6 +137,7 @@ XML;
         $this->assertEquals(3, count($items));
     }
 
+    private function assertFeedMetadata($res)
     {
         $this->assertEquals('Sky Sports | Football', $res->getTitle(), 'Incorrect title');
         $this->assertEquals('http://www.skysports.com', $res->getLink(), 'Incorrect link');
