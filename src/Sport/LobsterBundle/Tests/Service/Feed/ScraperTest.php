@@ -9,6 +9,8 @@
 
 namespace Sport\LobsterBundle\Tests\Service\Feed;
 
+use Sport\LobsterBundle\Entity\Feed;
+use Sport\LobsterBundle\Entity\FeedItem;
 use Sport\LobsterBundle\Service\Feed\Scraper;
 use Sport\LobsterBundle\Traits\TearDownTrait;
 use \Mockery as m;
@@ -40,6 +42,36 @@ class ScraperTest extends \PHPUnit_Framework_TestCase
             <link>http://www.skysports.com</link>
         </image>
         <ttl>120</ttl>
+    </channel>
+</rss>
+XML;
+
+    private $malformedChannel = <<<XML
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<rss version="2.0">
+    <channels>
+        <title>Sky Sports | Football </title>
+        <link>http://www.skysports.com</link>
+        <description>Europa League News</description>
+        <language>en-gb</language>
+        <lastBuildDate>Sat, 26 Apr 2014 15:20:18 GMT</lastBuildDate>
+        <copyright>Copyright 2014, BSKYB. All Rights Reserved.</copyright>
+        <category>Football</category>
+        <image>
+            <title>Sky Sports</title>
+            <url>http://www.skysports.com/Images/skysports/site/ss-logo-07.gif</url>
+            <link>http://www.skysports.com</link>
+        </image>
+        <ttl>120</ttl>
+        <item>
+            <title><![CDATA[Basel brush Valencia aside]]></title>
+            <description><![CDATA[Matias Delgado scored a first-half brace as Basel convincingly beat Valencia 3-0 at home in the Europa League in a match which was played behind closed doors.]]></description>
+            <link>http://www.skysports.com/football/match_report/0,19764,11065_3716124,00.html</link>
+            <guid isPermaLink="false">11959_9247242</guid>
+            <pubDate>Thu, 03 Apr 2014 22:06:04 GMT</pubDate>
+            <category>Report</category>
+            <enclosure type="image/jpg" url="http://img.skysports.com/14/04/128x67/Basel-v-Valencia-Matias-Delgado-second-goal-c_3113587.jpg" length="123456" />
+        </item>
     </channel>
 </rss>
 XML;
@@ -111,17 +143,18 @@ XML;
 
     public function testEmptyChannelReturnsChannelData()
     {
-        $emptyMock = m::mock('Goutte\Client');
-        $emptyMock->shouldReceive('request')
+        $feedMock = m::mock('Goutte\Client');
+        $feedMock->shouldReceive('request')
             ->once()->with('GET', 'http://www.skysports.com/feed.xml')
             ->andReturn(new Crawler($this->emptyChannel));
 
         $test = new Scraper('xml', 'http://www.skysports.com/feed.xml');
-        $test->setClient($emptyMock);
+        $test->setClient($feedMock);
         $res = $test->fetch();
         $this->assertFeedMetadata($res);
         $this->assertEmpty($res->getItems(), 'Empty feed returned results');
     }
+
     public function testValidChannelReturnsCorrectItems()
     {
         $feedMock = m::mock('Goutte\Client');
@@ -137,7 +170,30 @@ XML;
         $this->assertEquals(3, count($items));
     }
 
-    private function assertFeedMetadata($res)
+    public function badResponseProvider() {
+        return array(
+            array(),
+            array(),
+            array(),
+        );
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testMalformedResponseThrowsException()
+    {
+        $feedMock = m::mock('Goutte\Client');
+        $feedMock->shouldReceive('request')
+            ->once()->with('GET', 'http://www.skysports.com/feed.xml')
+            ->andReturn(new Crawler($this->malformedChannel));
+
+        $test = new Scraper('xml', 'http://www.skysports.com/feed.xml');
+        $test->setClient($feedMock);
+        $res = $test->fetch();
+    }
+
+    private function assertFeedMetadata(Feed $res)
     {
         $this->assertEquals('Sky Sports | Football', $res->getTitle(), 'Incorrect title');
         $this->assertEquals('http://www.skysports.com', $res->getLink(), 'Incorrect link');

@@ -10,6 +10,7 @@
 namespace Sport\LobsterBundle\Service\Feed;
 
 use Goutte\Client;
+use Symfony\Component\DomCrawler\Crawler as SymfonyCrawler;
 use Sport\LobsterBundle\Entity\Feed;
 use Sport\LobsterBundle\Entity\FeedItem;
 
@@ -60,34 +61,48 @@ class Scraper
     {
         $crawler = $this->client->request('GET', $this->feedUrl);
 
-        $feed    = new Feed();
-        $feed->setTitle($this->getText($crawler, '//channel/title'))
-            ->setLink($this->getText($crawler, '//channel/link'))
-            ->setDescription($this->getText($crawler, '//channel/description'))
-            ->setCategory($this->getText($crawler, '//channel/category'))
-            ->setImageTitle($this->getText($crawler, '//channel/image/title'))
-            ->setImageLink($this->getText($crawler, '//channel/image/link'))
-            ->setImageUrl($this->getText($crawler, '//channel/image/url'))
-            ->setLastBuildDate(new \DateTime($this->getText($crawler, '//channel/lastBuildDate')));
+        try {
+            $feed = new Feed();
+            $feed->setTitle($this->getText($crawler, '//channel/title'))
+                ->setLink($this->getText($crawler, '//channel/link'))
+                ->setDescription($this->getText($crawler, '//channel/description'))
+                ->setCategory($this->getText($crawler, '//channel/category'))
+                ->setImageTitle($this->getText($crawler, '//channel/image/title'))
+                ->setImageLink($this->getText($crawler, '//channel/image/link'))
+                ->setImageUrl($this->getText($crawler, '//channel/image/url'))
+                ->setLastBuildDate(new \DateTime($this->getText($crawler, '//channel/lastBuildDate')));
 
-        $crawler->filterXPath('//channel/item')->each(
-            function (\Symfony\Component\DomCrawler\Crawler $node, $i) {
-                foreach($node->children() as $child) {
-                    var_dump($child->nodeName);
+            $crawler->filterXPath('//channel/item')->each(
+                function (SymfonyCrawler $node, $i) use ($feed) {
+                    $item = new FeedItem();
+                    foreach ($node->children() as $child) {
+                        $nodeName = $child->nodeName;
+                        switch($nodeName) {
+                            case 'enclosure':
+                                $item->setEnclosure($child->getAttribute('url'));
+                                break;
+                            default:
+                                $setter = 'set' . ucfirst($nodeName);
+                                $item->{$setter}((string)$child->nodeValue);
+                        }
+                    }
+                    $feed->addItem($item);
                 }
-            }
-        );
+            );
+        } catch(\InvalidArgumentException $e) {
+            throw new \RuntimeException("{$this->feedUrl} returned a malformed response");
+        }
 
         return $feed;
     }
 
     /**
-     * @param \Symfony\Component\DomCrawler\Crawler $crawler
-     * @param string                               $node
+     * @param SymfonyCrawler $crawler
+     * @param string         $node
      *
      * @return mixed
      */
-    private function getText(\Symfony\Component\DomCrawler\Crawler $crawler, $node)
+    private function getText(SymfonyCrawler $crawler, $node)
     {
         return trim($crawler->filterXPath($node)->text());
     }

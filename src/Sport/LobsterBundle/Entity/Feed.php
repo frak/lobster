@@ -278,9 +278,10 @@ class Feed
      *
      * @return Feed
      */
-    public function addItem(FeedItem $items)
+    public function addItem(FeedItem $item)
     {
-        $this->items[] = $items;
+        $this->items[] = $item;
+        $item->setFeed($this);
 
         return $this;
     }
