@@ -170,14 +170,6 @@ XML;
         $this->assertEquals(3, count($items));
     }
 
-    public function badResponseProvider() {
-        return array(
-            array(),
-            array(),
-            array(),
-        );
-    }
-
     /**
      * @expectedException \RuntimeException
      */
@@ -191,6 +183,15 @@ XML;
         $test = new Scraper('xml', 'http://www.skysports.com/feed.xml');
         $test->setClient($feedMock);
         $res = $test->fetch();
+    }
+
+    public function testInjectedResponseIsStillParsed()
+    {
+        $test = new Scraper('xml', 'http://www.skysports.com/feed.xml');
+        $res = $test->fetch($this->realChannel);
+        $this->assertFeedMetadata($res);
+        $items = $res->getItems();
+        $this->assertEquals(3, count($items));
     }
 
     private function assertFeedMetadata(Feed $res)

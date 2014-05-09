@@ -13,3 +13,5 @@ parameters:
 
     locale:            en
     secret:            ThisTokenIsNotSoSecretChangeIt
+
+    feed.xml:          /var/www/sites/sportlobster.dev/feed.xml
