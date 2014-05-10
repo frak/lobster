@@ -1,6 +1,7 @@
 # SportLobster Test #
 ## Deploy ##
-**This entire section is dependant on having the correct SSH permissions**
+**This entire section is dependant on having the correct SSH permissions and 
+having [Capifony](http://capifony.org/) installed**
 
 Modify app/config/deploy.rb to reflect the staging environment you wish to deploy to (or production)
 
