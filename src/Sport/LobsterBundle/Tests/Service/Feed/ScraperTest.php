@@ -185,10 +185,19 @@ XML;
         $res = $test->fetch();
     }
 
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testUnknownFormatThrowsException()
+    {
+        $test = new Scraper('json', 'http://www.skysports.com/feed.xml');
+        $res  = $test->fetch();
+    }
+
     public function testInjectedResponseIsStillParsed()
     {
         $test = new Scraper('xml', 'http://www.skysports.com/feed.xml');
-        $res = $test->fetch('', $this->realChannel);
+        $res  = $test->fetch('', $this->realChannel);
         $this->assertFeedMetadata($res);
         $items = $res->getItems();
         $this->assertEquals(2, count($items));
