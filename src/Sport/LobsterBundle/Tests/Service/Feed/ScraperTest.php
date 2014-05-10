@@ -167,7 +167,7 @@ XML;
         $res = $test->fetch();
         $this->assertFeedMetadata($res);
         $items = $res->getItems();
-        $this->assertEquals(3, count($items));
+        $this->assertEquals(2, count($items));
     }
 
     /**
@@ -188,10 +188,10 @@ XML;
     public function testInjectedResponseIsStillParsed()
     {
         $test = new Scraper('xml', 'http://www.skysports.com/feed.xml');
-        $res = $test->fetch($this->realChannel);
+        $res = $test->fetch('', $this->realChannel);
         $this->assertFeedMetadata($res);
         $items = $res->getItems();
-        $this->assertEquals(3, count($items));
+        $this->assertEquals(2, count($items));
     }
 
     private function assertFeedMetadata(Feed $res)

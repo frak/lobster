@@ -62,12 +62,15 @@ class Scraper
      *
      * @todo JSON implementation
      *
-     * @return Feed
+     * @param string $category
+     * @param string $response
+     *
      * @throws \RuntimeException
+     * @return Feed
      */
-    public function fetch($response = '')
+    public function fetch($category = '', $response = '')
     {
-        if (empty($response)){
+        if (empty($response)) {
             $crawler = $this->client->request('GET', $this->feedUrl);
         } else {
             $crawler = new SymfonyCrawler($response);
@@ -75,7 +78,7 @@ class Scraper
 
         switch ($this->feedFormat) {
             case 'xml':
-                $feed = $this->parseXml($crawler);
+                $feed = $this->parseXml($crawler, $category);
                 break;
             default:
                 throw new \RuntimeException("Unknown data format");
@@ -97,44 +100,50 @@ class Scraper
 
     /**
      * @param SymfonyCrawler $crawler
+     * @param                $category
      *
-     * @return Feed
      * @throws \RuntimeException
+     * @return Feed
      */
-    private function parseXml(SymfonyCrawler $crawler)
+    private function parseXml(SymfonyCrawler $crawler, $category)
     {
         try {
             $feed = new Feed();
-            $category = $this->getText($crawler, '//channel/category');
-            if($category !== 'Preview') {
-                $feed->setTitle($this->getText($crawler, '//channel/title'))
-                    ->setCategory($category)
-                    ->setLink($this->getText($crawler, '//channel/link'))
-                    ->setDescription($this->getText($crawler, '//channel/description'))
-                    ->setImageTitle($this->getText($crawler, '//channel/image/title'))
-                    ->setImageLink($this->getText($crawler, '//channel/image/link'))
-                    ->setImageUrl($this->getText($crawler, '//channel/image/url'))
-                    ->setLastBuildDate(new \DateTime($this->getText($crawler, '//channel/lastBuildDate')));
+            $feed->setTitle($this->getText($crawler, '//channel/title'))
+                ->setCategory($this->getText($crawler, '//channel/category'))
+                ->setLink($this->getText($crawler, '//channel/link'))
+                ->setDescription($this->getText($crawler, '//channel/description'))
+                ->setImageTitle($this->getText($crawler, '//channel/image/title'))
+                ->setImageLink($this->getText($crawler, '//channel/image/link'))
+                ->setImageUrl($this->getText($crawler, '//channel/image/url'))
+                ->setLastBuildDate(new \DateTime($this->getText($crawler, '//channel/lastBuildDate')));
 
-                $crawler->filterXPath('//channel/item')->each(
-                    function (SymfonyCrawler $node, $i) use ($feed) {
-                        $item = new FeedItem();
-                        /** @var $child \DOMElement */
-                        foreach ($node->children() as $child) {
-                            $nodeName = $child->nodeName;
-                            switch ($nodeName) {
-                                case 'enclosure':
-                                    $item->setEnclosure($child->getAttribute('url'));
-                                    break;
-                                default:
-                                    $setter = 'set' . ucfirst($nodeName);
-                                    $item->{$setter}((string)$child->nodeValue);
-                            }
+            $crawler->filterXPath('//channel/item')->each(
+                function (SymfonyCrawler $node, $i) use ($feed, $category) {
+                    $item         = new FeedItem();
+                    $thisCategory = null;
+                    /** @var $child \DOMElement */
+                    foreach ($node->children() as $child) {
+                        $nodeName = $child->nodeName;
+                        switch ($nodeName) {
+                            case 'enclosure':
+                                $item->setEnclosure($child->getAttribute('url'));
+                                break;
+                            case 'category':
+                                $thisCategory = (string)$child->nodeValue;
+                            default:
+                                $setter = 'set' . ucfirst($nodeName);
+                                $item->{$setter}((string)$child->nodeValue);
+                                break;
                         }
-                        $feed->addItem($item);
                     }
-                );
-            }
+                    if ($thisCategory !== 'Preview') {
+                        if (empty($category) || (!empty($category) && $thisCategory === $category)) {
+                            $feed->addItem($item);
+                        }
+                    }
+                }
+            );
         } catch (\InvalidArgumentException $e) {
             $thrown = new \RuntimeException("{$this->feedUrl} returned a malformed response", 999, $e);
             throw $thrown;

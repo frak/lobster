@@ -18,17 +18,18 @@ class DefaultController extends Controller
     }
 
     /**
-     * @Route("/football", name="football_news")
+     * @Route("/football/{category}", name="football_news", defaults={"category" = ""})
      * @Template()
      */
-    public function footballNewsAction()
+    public function footballNewsAction($category)
     {
+        $category = ucfirst($category);
         try {
             /**
              * This is only here to get around not having a real server to get the feed from
              */
             $feedContents = file_get_contents($this->container->getParameter('feed.xml'));
-            $feed = $this->get('lobster.sky.scraper')->fetch($feedContents);
+            $feed         = $this->get('lobster.sky.scraper')->fetch($category, $feedContents);
         } catch (\RuntimeException $e) {
             $feed = null;
         }
