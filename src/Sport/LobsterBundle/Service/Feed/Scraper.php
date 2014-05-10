@@ -125,14 +125,17 @@ class Scraper
                     /** @var $child \DOMElement */
                     foreach ($node->children() as $child) {
                         $nodeName = $child->nodeName;
+                        $setter = 'set' . ucfirst($nodeName);
                         switch ($nodeName) {
                             case 'enclosure':
                                 $item->setEnclosure($child->getAttribute('url'));
                                 break;
+                            case 'pubDate':
+                                $item->setPubDate(new \DateTime($child->nodeValue));
+                                break;
                             case 'category':
                                 $thisCategory = (string)$child->nodeValue;
                             default:
-                                $setter = 'set' . ucfirst($nodeName);
                                 $item->{$setter}((string)$child->nodeValue);
                                 break;
                         }

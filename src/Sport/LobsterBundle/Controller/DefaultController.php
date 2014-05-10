@@ -24,14 +24,11 @@ class DefaultController extends Controller
     public function footballNewsAction($category)
     {
         $category = ucfirst($category);
-        try {
-            /**
-             * This is only here to get around not having a real server to get the feed from
-             */
-            $feedContents = file_get_contents($this->container->getParameter('feed.xml'));
-            $feed         = $this->get('lobster.sky.scraper')->fetch($category, $feedContents);
-        } catch (\RuntimeException $e) {
-            $feed = null;
+        $repo     = $this->get('doctrine.orm.entity_manager')->getRepository('SportLobsterBundle:Feed');
+        if (empty($category)) {
+            $feed = $repo->findOneByTitle('Sky Sports | Football');
+        } else {
+            $feed = $repo->findOneByTitleAndItemCategory('Sky Sports | Football', $category);
         }
 
         return compact('feed');

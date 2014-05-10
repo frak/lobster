@@ -81,7 +81,7 @@ class Feed
     /**
      * @var Collection
      *
-     * @ORM\OneToMany(targetEntity="FeedItem", mappedBy="feed")
+     * @ORM\OneToMany(targetEntity="FeedItem", mappedBy="feed", cascade={"persist", "remove"})
      */
     private $items;
 

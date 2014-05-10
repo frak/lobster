@@ -1,0 +1,36 @@
+{% extends '::base.html.twig' %}
+
+{% block body %}
+  {% if feed is null %}
+    <h3 class="error">There has been a problem fetching the feed</h3>
+    <p>We are working hard to get it back for you!</p>
+  {% else %}
+    <h1>{{ feed.title }}</h1>
+    <a href="{{ feed.imageLink }}"><img src="{{ feed.imageUrl }}" title="{{ feed.imageTitle }}"/></a><br/>
+    <strong>{{ feed.category }}</strong>
+    <p>{{ feed.description }}</p>
+    {% if feed.items|length == 0 %}
+      <h3>There is no news for this feed</h3>
+      <p>Please come back later</p>
+    {% else %}
+      {% for item in feed.items %}
+        <article>
+          <h3 class="title"><a href="{{ item.link }}">{{ item.title }}</a></h3>
+
+          <p class="description">{{ item.description }}</p>
+          <small>
+            <strong class="category">
+              {% if item.category == 'Report' %}
+                <a href="{{ path('football_news', {'category': item.category|lower}) }}">{{ item.category }}</a>
+              {% else %}
+                {{ item.category }}
+              {% endif %}
+            </strong>
+            |
+            <span class="pubDate">{{ item.pubDate|date }}</span>
+          </small>
+        </article>
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+{% endblock %}
