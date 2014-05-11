@@ -9,7 +9,7 @@ Setup your vhost on the remote server. The only consideration you need to make f
 is that the current site will be served at {your_root}/current/web. This is symlinked
 automatically with each deploy.
 
-Then run `capifony staging deploy:init` to create the remote directory structure. Once this
+Then run `capifony staging deploy::setup` to create the remote directory structure. Once this
 is complete you will need to configure your parameters.yml as per your site configuration.
 
 To deploy you will need to run `capifony staging deploy` - the first run of this will take 

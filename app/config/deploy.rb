@@ -1,6 +1,6 @@
 set :application,    "sportlobster"
 set :domain,         "#{application}.com"
-set :deploy_to,      "/var/www/#{domain}"
+set :deploy_to,      "/sites/#{domain}"
 set :app_path,       "app"
 set :repository,     "git@github.com:frak/lobster.git"
 set :scm,            :git
@@ -50,8 +50,8 @@ task :production do
 end
 
 task :staging do
-  role :web,              "your.staging.server"
-  role :app,              "your.staging.server", :primary => true
+  role :web,              "serv0r"
+  role :app,              "serv0r", :primary => true
   set :clear_controllers, false
   set :symfony_debug,     true
   set :symfony_env_prod,  "dev"
