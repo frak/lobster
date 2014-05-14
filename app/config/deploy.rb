@@ -24,6 +24,10 @@ before "symfony:cache:warmup", "symfony:doctrine:migrations:migrate"
 # Cleanup after you're done
 after "deploy", "deploy:cleanup"
 
+# Shared stuff
+set :shared_files,    ["app/config/parameters.yml"]
+set :shared_children, [app_path + "/logs", web_path + "/uploads", "vendor"]
+
 task :production do
   role :web,        domain # You can add as many servers as you like to each role
   role :app,        domain, :primary => true # This is also the server that Doctrine migrations are run
